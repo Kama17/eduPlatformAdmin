@@ -2,9 +2,12 @@
     import { CheckCircleSolid , CircleMinusSolid, CirclePlusSolid} from 'flowbite-svelte-icons'
     import { Modal, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Tabs, TabItem, Button, Toast , Label, Input, P } from 'flowbite-svelte';
     import { Section, Register } from "flowbite-svelte-blocks";
+    import BotActivity from '$lib/components/botActivity.svelte';
 
     import TelegramTable from '$lib/components/TelegramTable.svelte';
     import { writable } from 'svelte/store';
+
+
     const selectedUser = writable<Item | null>(null);
 
     import { page } from '$app/stores'
@@ -177,10 +180,7 @@ async function deleteUser(item: Item)
 
 
   <TabItem title="Bot">
-    <p class="text-sm text-gray-500 dark:text-gray-400">
-      <b>Settings:</b>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-    </p>
+   <BotActivity/>
   </TabItem>
 
 

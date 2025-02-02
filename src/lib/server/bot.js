@@ -106,7 +106,7 @@ bot.onText(/\/email/, (msg) => {
         }
       }
 
-    console.log(msg.new_chat_members)
+    console.log(msg)
   }
   });
 
@@ -120,7 +120,7 @@ bot.onText(/\/email/, (msg) => {
           botLeft( msg.chat.id )
           console.log("Bot removed from chat")
         }
-        console.log(msg.left_chat_member)
+        console.log(msg)
       }
     });
 
