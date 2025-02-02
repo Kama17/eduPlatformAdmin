@@ -1,0 +1,47 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+@import '@fontsource/fira-mono';
+
+
+body, .custom-scrollbar {
+
+	--sb-size: 4px;
+	--sb-track-color: bg-gray-800;
+	--sb-thumb-color: #76758e;
+}
+
+
+  body::-webkit-scrollbar,
+  .custom-scrollbar::-webkit-scrollbar {
+	width: var(--sb-size)
+  }
+
+  body::-webkit-scrollbar-track,
+  .custom-scrollbar::-webkit-scrollbar-track {
+	background: var(--sb-track-color);
+	border-radius: 1px;
+  }
+
+  body::-webkit-scrollbar-thumb,
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+	background: var(--sb-thumb-color);
+	border-radius: 1px;
+	border: 1px solid #232e33;
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+	body,
+	.custom-scrollbar {
+	  scrollbar-color: var(--sb-thumb-color)
+					   var(--sb-track-color);
+	}
+  }
+
+
+
+  .no-rounded,
+  .no-rounded * {
+	border-radius: 0 !important;
+
+  }

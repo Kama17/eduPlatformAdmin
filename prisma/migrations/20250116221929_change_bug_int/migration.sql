@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "bot" ALTER COLUMN "chatId" SET DATA TYPE BIGINT;

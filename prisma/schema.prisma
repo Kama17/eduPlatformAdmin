@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  createdAT DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  email       String    @unique
+  password    String?
+  active      String    @default("no")
+  loginCount  Int       @default(0)     // Tracks the number of successful logins
+  lastLogin   DateTime? // Tracks the last successful login timestamp
+
+  userDetails userDetails[]
+  Session Session[]
+  telegramGroups telegramGroups[]
+  userProgress userProgress[]
+}
+
+model Session {
+  id            Int      @id @default(autoincrement())
+  sessionToken  String   @unique
+  userId        Int
+  user          User      @relation(fields: [userId], references: [id])
+  expiresAt   DateTime
+}
+
+model userDetails {
+id              Int      @id @default(autoincrement())
+firstName       String?
+lastName        String?
+autoShipDate    DateTime?
+telegramName    String?
+telegramId      BigInt? @unique
+userId          Int
+user            User        @relation(fields: [userId], references: [id])
+}
+
+model userProgress {
+  id         Int  @id @default(autoincrement())
+  userId     Int
+  itemId     String  // Unique ID for the sidebar item
+  isChecked  Boolean // Checkbox state
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id])
+
+   @@unique([userId, itemId]) // Composite unique constraint
+}
+
+model telegramGroups {
+  id        Int      @id @default(autoincrement())
+  chatId   BigInt
+  chatName String?
+  isActive Boolean   @default(false)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  bot       bot     @relation(fields: [chatId], references: [chatId])
+}
+
+model bot {
+id      Int @id @default(autoincrement())
+chatId  BigInt @unique
+chatName String?
+isMember Boolean  @default(false)
+
+telegramGroups telegramGroups[] // Reverse relation from bot to telegramGroups
+
+}
