@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken'  // Use JWT for generating tokens
 import { sendEmail } from '$lib/helper/sendEmail'  // A custom function to send emails
 import db from '$lib/database.js'
 
-const JWT_SECRET = 'your-secret-key';  // Store this securely in environment variables
+const JWT_SECRET = String(process.env.JWT_SECRET)
 
 export async function POST({ request }) {
 
