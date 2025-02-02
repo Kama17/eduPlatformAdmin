@@ -85,7 +85,8 @@ export async function addTelegramUserIfExists(chatId, userId, chatName) {
     });
 
     if (!userDetails) {
-        throw new Error('User details not found');
+        console.log('User details not found');
+        return;
     }
 
     const user = await db.user.findUnique({
