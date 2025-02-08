@@ -1,12 +1,12 @@
 import { json } from '@sveltejs/kit';
-import db from '$lib/database';
+import client from '$lib/database';
 import { redirect } from '@sveltejs/kit';
 
 export const POST = async ({ cookies }) => {
     const sessionToken = cookies.get('user_session');
 
     if (sessionToken) {
-        await db.session.delete({
+        await client.db.session.delete({
             where: { sessionToken },
         });
 

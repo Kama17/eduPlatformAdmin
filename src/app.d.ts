@@ -16,6 +16,12 @@ declare global {
 			}
 		}
 	}
+	namespace NodeJS {
+		interface ProcessEnv {
+			SUPER_BASE_URL: string;
+			ANON_KEY: string;
+		}
+	  }
 }
 
 export {};

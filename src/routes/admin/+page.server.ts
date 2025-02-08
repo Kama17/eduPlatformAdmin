@@ -1,8 +1,8 @@
-import db from '$lib/database.js'
+import client from '$lib/database.js'
 import type { PageServerLoad } from './$types';
 
   export const load: PageServerLoad = async () => {
-	const users = await db.user.findMany({
+	const users = await client.db.user.findMany({
         select: {
           id: true,
           email: true,
@@ -13,6 +13,7 @@ import type { PageServerLoad } from './$types';
               lastName: true,
               autoShipDate: true,
               telegramName: true,
+              telegramId: true
             },
           },
           telegramGroups: {
@@ -21,9 +22,19 @@ import type { PageServerLoad } from './$types';
               chatName: true,
               isActive: true,
             }
-          }
+          },
         },
       });
 
-      return {users}
+      const botChats = await client.db.bot.findMany({
+        select: {
+          id: true,
+          chatId: true,
+          chatName: true,
+          isActive: true
+        }
+      })
+
+      console.log("RE-RUN", botChats)
+      return {users, botChats}
 };

@@ -1,5 +1,5 @@
 import { type RequestHandler } from "@sveltejs/kit";
-import db from '$lib/database';
+import client from '$lib/database';
 
 
 export const POST: RequestHandler = async ({request, cookies} ) => {
@@ -8,10 +8,7 @@ export const POST: RequestHandler = async ({request, cookies} ) => {
         const email = data.get('email');
         const password = data.get('password');
 
-
-
-
-        const user = await db.user.findUnique({
+        const user = await client.db.user.findUnique({
             where: { email: email as string },
         });
 
@@ -19,11 +16,11 @@ export const POST: RequestHandler = async ({request, cookies} ) => {
             const sessionToken = crypto.randomUUID()
             const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24)
 
-            await db.session.deleteMany({
+            await client.db.session.deleteMany({
                 where: { userId: user.id },
             });
 
-            await db.user.update({
+            await client.db.user.update({
                 where: { id: user.id },
                 data: {
                     loginCount: { increment: 1}, // Increment the login count by 1
@@ -31,7 +28,7 @@ export const POST: RequestHandler = async ({request, cookies} ) => {
                 },
             });
 
-            await db.session.create({
+            await client.db.session.create({
                 data: {
                     sessionToken,
                     userId: user.id,

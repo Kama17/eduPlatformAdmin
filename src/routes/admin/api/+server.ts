@@ -1,15 +1,15 @@
-import db from '$lib/database.js';
+import client from '$lib/database.js';
 import { type RequestHandler } from "@sveltejs/kit";
-
+import {bot} from '$lib/server/bot'
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
     // Access the request object and parse the JSON body
-    const { action, userEmail } = await request.json(); // Fixed typo here
+    const { action, userEmail, chatId, userId } = await request.json(); // Fixed typo here
 
     // Handle the "deactivate" action
     if (action === "deactivate") {
       try {
-        await db.user.update({
+        await client.db.user.update({
           where: {
             email: userEmail, // Use the correct variable
           },
@@ -27,7 +27,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     } else if (action === "renew") {
 
         try {
-            await db.user.update({
+            await client.db.user.update({
               where: {
                 email: userEmail, // Use the correct variable
               },
@@ -45,7 +45,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     } else if (action === "delete") {
         try {
             // Delete the user by email
-            await db.user.delete({
+            await client.db.user.delete({
               where: {
                 email: userEmail, // Ensure this variable contains the correct email
               },
@@ -58,7 +58,71 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             return new Response(JSON.stringify({ error: "Failed to delete user" }), { status: 500 });
           }
 
+    } else if ( action === "activateBot") {
+      try {
+        // Delete the user by email
+        await client.db.bot.update({
+          where: {
+            chatId: BigInt(chatId), // Ensure this variable contains the correct email
+          },
+          data: {
+            isActive: true
+          }
+        });
+
+        // Return success response
+        return new Response(JSON.stringify("Bot activated successfully"), { status: 200 });
+      } catch (error) {
+        // Handle potential errors (e.g., user not found)
+        return new Response(JSON.stringify({ error: "Failed to activate bot" }), { status: 500 });
+      }
+
+    } else if ( action === "botLeaveChat") {
+      try {
+        // Delete the user by email
+        await client.db.bot.delete({
+          where: {
+            chatId: BigInt(chatId), // Ensure this variable contains the correct email
+          }
+        });
+
+        bot.leaveChat(chatId)
+        // Return success response
+        return new Response(JSON.stringify("Bot activated successfully"), { status: 200 });
+      } catch (error) {
+        // Handle potential errors (e.g., user not found)
+        return new Response(JSON.stringify({ error: "Failed to activate bot" }), { status: 500 });
+      }
+
+    } else if ( action === "deleteUserFromChat") {
+      try {
+        // Delete the user by email
+        //await client.db.telegramGroups.delete({
+          //where: {
+           // chatId: BigInt(chatId),
+           // userId: userId // Ensure this variable contains the correct email
+          //}
+        //});
+
+        // Return success response
+        return new Response(JSON.stringify("User removed form chat successfully"), { status: 200 });
+      } catch (error) {
+        // Handle potential errors (e.g., user not found)
+        return new Response(JSON.stringify({ error: "Failed removed user form chat" }), { status: 500 });
+      }
+
     }
+
+    // Return a response if the action is not recognized
+    return new Response(JSON.stringify({ error: "Invalid action" }), { status: 400 });
+  };
+
+  export const GET: RequestHandler = async ({ request, cookies }) => {
+
+
+
+        //bot.leaveChat(chatId)
+        // Return success response
 
     // Return a response if the action is not recognized
     return new Response(JSON.stringify({ error: "Invalid action" }), { status: 400 });

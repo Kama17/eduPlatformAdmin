@@ -1,9 +1,9 @@
 //import { hash } from 'bcryptjs';
 import jwt from 'jsonwebtoken'  // Use JWT for generating tokens
 import { sendEmail } from '$lib/helper/sendEmail'  // A custom function to send emails
-import db from '$lib/database.js'
-
-const JWT_SECRET = String(process.env.JWT_SECRET)
+import client from '$lib/database'
+import { JWT_SECRET } from '$env/static/private'
+const {db} = client
 
 export async function POST({ request }) {
 

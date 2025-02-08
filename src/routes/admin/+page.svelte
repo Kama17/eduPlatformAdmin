@@ -2,15 +2,51 @@
     import { CheckCircleSolid , CircleMinusSolid, CirclePlusSolid} from 'flowbite-svelte-icons'
     import { Modal, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Tabs, TabItem, Button, Toast , Label, Input, P } from 'flowbite-svelte';
     import { Section, Register } from "flowbite-svelte-blocks";
-    import BotActivity from '$lib/components/botActivity.svelte';
-
+    import BotChats from '$lib/components/botChats.svelte';
+    import client from '$lib/database'
+    import { page } from '$app/stores'
+	  import BotActivity from '$lib/components/botActivity.svelte';
+	  import { invalidateAll } from '$app/navigation';
+	  import { onDestroy, onMount } from 'svelte';
     import TelegramTable from '$lib/components/TelegramTable.svelte';
     import { writable } from 'svelte/store';
 
 
-    const selectedUser = writable<Item | null>(null);
+    onMount(() => {
+  const channel = client.supabase
+    .channel('schema-db-changes')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bot' }, (payload) => {
+      invalidateAll();
+      console.log('New message INSERT bot:', payload);
+    })
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'bot' }, (payload) => {
+      invalidateAll();
+      console.log('New message DELETE bot:', payload);
+    })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bot' }, (payload) => {
+      invalidateAll();
+      console.log('New message UPDATE bot:', payload);
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'telegramGroups' }, (payload) => {
+      invalidateAll();
+      console.log('New message INSERT telegramGroups:', payload);
+    })
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'telegramGroups' }, (payload) => {
+      invalidateAll();
+      console.log('New message DELETE telegramGroups:', payload);
+    })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'telegramGroups' }, (payload) => {
+      invalidateAll();
+      console.log('New message UPDATE telegramGroups:', payload);
+    })
+    .subscribe();
 
-    import { page } from '$app/stores'
+  // Cleanup on component destroy
+  onDestroy(() => {
+    channel.unsubscribe();
+  });
+});
+    const selectedUser = writable<Item | null>(null);
 
     let defaultModal = false;
 
@@ -24,6 +60,7 @@
 interface TelegramGroups {
   chatId?: string;
   ChatName?: true;
+  userId?: Number;
 }
 
 interface UserDetails {
@@ -86,6 +123,15 @@ async function deleteUser(item: Item)
     });
 }
 
+async function deleteUserFromChat(chatId: bigint, userId: number)
+{
+  await fetch('/admin/api', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: "deleteUserFromChat", userId: userId, chatId: chatId?.toString() }),
+    });
+}
+
   </script>
 
 <svelte:head>
@@ -123,6 +169,8 @@ async function deleteUser(item: Item)
       Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
     </p>
   </TabItem>
+
+
 
 
   <TabItem open title="Users">
@@ -179,8 +227,12 @@ async function deleteUser(item: Item)
   </TabItem>
 
 
-  <TabItem title="Bot">
-   <BotActivity/>
+<TabItem title="Bot">
+  <BotChats botChatsList = {$page.data.botChats}/>
+ </TabItem>
+
+ <TabItem title="Activity">
+   <BotActivity botChatsList = {$page.data.botChats}/>
   </TabItem>
 
 
@@ -204,7 +256,7 @@ async function deleteUser(item: Item)
 </Tabs>
 
 
-
+{#key $page.data.users}
 <Modal title="User Details" bind:open={defaultModal}>
   {#if $selectedUser}
     <div class="space-y-4">
@@ -230,6 +282,15 @@ async function deleteUser(item: Item)
         </div>
       {/if}
 
+
+      <!-- Telegram Name Section -->
+      {#if ($selectedUser as any).userDetails[0]?.telegramId}
+        <div class="flex justify-between">
+          <span class="text-gray-700 font-medium">Telegram ID:</span>
+          <span class="text-gray-500">{($selectedUser as any).userDetails[0]?.telegramId}</span>
+        </div>
+      {/if}
+
       <!-- Telegram Groups Section -->
       {#if ($selectedUser as any).telegramGroups && ($selectedUser as any).telegramGroups.length > 0}
         <div class="mt-4">
@@ -249,7 +310,7 @@ async function deleteUser(item: Item)
                   <span class="font-medium">{group.chatName}</span>
                 </div>
                 {#if (group.isActive)}
-                <span><Button pill outline color="red" size="xs">Remove</Button></span>
+                <span><Button pill outline color="red" size="xs" on:click={() => deleteUserFromChat((group.chatId as bigint), (group.userId as number))}>Remove</Button></span>
                 {:else}
                 <span><Button pill outline color="green" size="xs">Add</Button></span>
                 {/if}
@@ -265,6 +326,8 @@ async function deleteUser(item: Item)
         <span class="text-gray-700 font-medium">Status:</span>
         {#if ($selectedUser as any).active === "yes"}
         <span class="text-sm font-semibold text-green-500">Active</span>
+        {:else if ($selectedUser as any).active === "pending"}
+        <span class="text-sm font-semibold text-yellow-500">Pending</span>
           {:else}
           <span class="text-sm font-semibold text-red-500">Inactive</span>
         {/if}
@@ -285,3 +348,4 @@ async function deleteUser(item: Item)
     </svelte:fragment>
 </Modal>
 
+{/key}

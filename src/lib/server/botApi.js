@@ -13,12 +13,12 @@ export async function botAdded(chatId, chatTitle) {
                 chatId: chatId,
             },
             update: {
-                isMember: true, // Update the membership status
+                isActive: false, // Update the membership status
             },
             create: {
                 chatId: chatId, // Create a new record with chatId
                 chatName: chatTitle, // Set the chat title
-                isMember: true, // Set the membership status
+                isActive: false, // Set the membership status
             },
         });
 
@@ -51,21 +51,14 @@ export async function botLeft(chatId) {
             return;
         }
 
-        // Update the bot's membership status to false
-        await db.bot.update({
-            where: {
-                chatId: chatId
-            },
-            data: {
-                isMember: false, // Update the user status to "false"
-            },
+        await db.bot.delete({
+            where: { chatId: chatId }
         });
-
-        console.log(`Bot with chatId ${chatId} marked as not a member.`);
+        console.log(`Bot deleted chatId ${chatId}.`);
 
         return {
             success: true,
-            message: 'Bot added or updated successfully.',
+            message: 'Bot removed form chat successfully.',
         };
 
     } catch (error) {
@@ -114,6 +107,45 @@ export async function addTelegramUserIfExists(chatId, userId, chatName) {
 
 
 /**
+ * @param {number} chatId
+ * @param {number} userId
+ */
+export async function removeTelegramUserIfExists(chatId, userId) {
+    const userDetails = await db.userDetails.findUnique({
+         where: { telegramId: userId },
+     });
+
+     if (!userDetails) {
+         console.log('User details not found');
+         return;
+     }
+
+     const user = await db.user.findUnique({
+         where: { id: userDetails.userId },
+     });
+
+     if (!user) {
+         console.log('User not found');
+         return;
+       }
+
+
+     const telegramGroup = await db.telegramGroups.delete({
+        where: {
+            chatId_userId: {
+              chatId: chatId,
+              userId: userId,
+            },
+          },
+         });
+
+
+     return telegramGroup;
+
+ }
+
+
+/**
  * @param {string} email
  */
 export async function checkUserExists(email) {
@@ -133,3 +165,4 @@ export async function checkUserExists(email) {
     else
     return false
  }
+

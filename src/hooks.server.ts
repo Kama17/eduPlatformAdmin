@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { HttpError } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit'; // Import the correct event type
-import db  from '$lib/database';
+import client  from '$lib/database';
 import type { Handle } from '@sveltejs/kit';
 
 
@@ -10,7 +10,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
     if (sessionToken) {
         // Validate session from the database
-        const session = await db.session.findUnique({
+        const session = await client.db.session.findUnique({
             where: { sessionToken },
             include: { user: true },
         });
@@ -24,7 +24,7 @@ export const handle: Handle = async ({ event, resolve }) => {
             };
         } else if (session) {
             // Session expired, delete it
-            await db.session.delete({
+            await client.db.session.delete({
                 where: { sessionToken },
             });
         }
